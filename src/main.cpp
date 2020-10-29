@@ -11,6 +11,13 @@ const float SPEED_LIGNE = 0.5;
 //Ligne verte: 2.5 cm
 float speed = 0;
 
+//map de l'arduino
+
+//PWM
+const int PIN_B = 8;
+const int PIN_R = 3;
+const int PIN_J = 2;
+
 
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
@@ -27,33 +34,64 @@ void correction_moteurs(uint32_t, uint32_t);
 
 void ligne_droite(int);
 
+void afficher_led(char);
 
 void setup() 
 {
   BoardInit();
-  //initialisation des modes
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
+  afficher_led('b');
+  delay(1000);
+  afficher_led('r');
+  delay(1000);
+  afficher_led('j');
+  delay(1000);
+  afficher_led('v');
+  delay(1000);
 }
 
 void loop() {
-digitalWrite(2, HIGH);
-digitalWrite(3, LOW);
-digitalWrite(4, LOW);
-delay(3000);
 
-digitalWrite(2, LOW);
-digitalWrite(3, HIGH);
-digitalWrite(4, LOW);
-delay(1000);
-  
-digitalWrite(2, LOW);
-digitalWrite(3, LOW);
-digitalWrite(4, HIGH);
-delay(1000);
 }
 
+void afficher_led(char couleur)
+{
+  //initialisation des modes
+  pinMode(PIN_J, OUTPUT);
+  pinMode(PIN_R, OUTPUT);
+  pinMode(PIN_B, OUTPUT);
+  digitalWrite(PIN_J, 0);
+  digitalWrite(PIN_R, 0);
+  digitalWrite(PIN_B, 0);
+
+  if (couleur == 'r')
+  {
+    digitalWrite(PIN_R, HIGH); 
+    delay(5000);
+    digitalWrite(PIN_R, 0);
+  }
+ 
+  else if (couleur == 'j')
+  {
+    digitalWrite(PIN_J, HIGH);
+    delay(5000);
+    digitalWrite(PIN_J, 0);
+  }
+    
+  else if (couleur == 'b')
+  {
+    digitalWrite(PIN_B, HIGH);
+    delay(5000);
+    digitalWrite(PIN_B, 0);
+  }
+   
+  else 
+  {
+    digitalWrite(PIN_J, HIGH);
+    digitalWrite(PIN_R, HIGH);
+    digitalWrite(PIN_B, HIGH);
+  }
+
+}
 
 void reset_ENCODERS()
 {
