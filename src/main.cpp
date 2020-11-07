@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include <Adafruit_TCS34725.h>
+
+
 
 //Constants:
 const float MAGIC_NUMBER = 0.00035;
@@ -18,9 +21,10 @@ const int PIN_B = 8;
 const int PIN_R = 3;
 const int PIN_J = 2;
 
-
-
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
+
+//Capteur Couleur:
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
 void reset_ENCODEUR();
 
@@ -36,21 +40,31 @@ void ligne_droite(int);
 
 void afficher_led(char);
 
+void detection_couleur();
+
 void setup() 
 {
   BoardInit();
-  afficher_led('b');
-  delay(1000);
-  afficher_led('r');
-  delay(1000);
-  afficher_led('j');
-  delay(1000);
-  afficher_led('v');
-  delay(1000);
+  
+  if (tcs.begin()) {
+        Serial.println("Found sensor");
+  } else {
+        Serial.println("No TCS34725 found ... check your connections");
+  }
 }
 
 void loop() {
+  detection_couleur();
+}
 
+void detection_couleur(){
+  uint16_t clear, red, green, blue;
+  tcs.getRawData(&red, &green, &blue, &clear);
+  delay(1000);
+  Serial.print("C:\t"); Serial.println(clear);
+  Serial.print("\tR:\t"); Serial.println(red);
+  Serial.print("\tG:\t"); Serial.println(green);
+  Serial.print("\tB:\t"); Serial.println(blue);
 }
 
 void afficher_led(char couleur)
@@ -169,6 +183,3 @@ void ligne_droite(int distance)
     delay (MAGIC_DELAY_LD);//40 fois / seconde
   }
 }
-
-
-  
