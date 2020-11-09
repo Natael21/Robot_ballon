@@ -8,10 +8,11 @@ const int MAGIC_DELAY_LD = 25;
 const uint32_t PPT = 3200;
 const float RAYON = 18.9;
 const float SPEED_ANGLE = 0.25;
-const float SPEED_LIGNE = 0.5;
+
 //Constantes Épreuve du combattant:
 const int ABAISSER = 0;
 const int MONTER = 150;
+const float SPEED_BALLON = 0.2;
 
 float speed = 0;
 
@@ -36,7 +37,7 @@ float distance_angle(float);
 
 void correction_moteurs(uint32_t, uint32_t);
 
-void ligne_droite(int);
+void ligne_droite(int, float, float);
 
 void tourne180();
 
@@ -44,7 +45,7 @@ void tourne(uint8_t idMoteur, float angle);
 
 void afficher_led(char);
 
-void detection_couleur();
+char detection_couleur();
 
 void bouger_bras(int degree);
 
@@ -53,38 +54,46 @@ void setup()
   BoardInit();
   
   //Déroulement du parcours:
-  ligne_droite(20);
-  tourne(RIGHT, 90);
-  ligne_droite(25);
-  tourne(LEFT, 90);
-  ligne_droite(100);
-  char couleur = detection_couleur();
-  ligne_droite(150);
-  bouger_bras(ABAISSER);
   
+  ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
+  tourne(RIGHT, 93);
+  ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
+  tourne(LEFT, 92);
+  ligne_droite(50, SPEED_BALLON, 0.05);
+  char couleur;
+  for(int i = 0; i < 4; i++){
+    couleur = detection_couleur();
+  }
+  ligne_droite(120, SPEED_BALLON, 0.5);
+  bouger_bras(ABAISSER);
+  Serial.print("Détection: ");Serial.println(couleur);
   if(couleur == 'r'){
-    ligne_droite(250);
+    ligne_droite(200, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 90);
-    ligne_droite(25);
+    ligne_droite(15, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
+    
   }
-  else if(couleur == 'y'){
+  else if(couleur == 'j'){
+    Serial.println(speed);
     tourne(RIGHT, 90);
-    ligne_droite(40);
+    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
     tourne(LEFT, 90);
-    ligne_droite(60);
+    ligne_droite(60, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
   else{
     tourne(LEFT, 90);
-    ligne_droite(40);
+    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 90);
-    ligne_droite(150);
+    ligne_droite(150, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
+  speed = 0;
+  setSameSpeed_MOTORS(speed);
   
   /*
   if (tcs.begin()) {
@@ -101,16 +110,31 @@ void loop() {
 
 //-----------------------Fonctions Capteurs:----------------------------
 
-void detection_couleur(){
+char detection_couleur(){
+  char couleur;
   uint16_t clear, red, green, blue;
   tcs.getRawData(&red, &green, &blue, &clear);
-  delay(1000);
+  delay(500);
   Serial.print("C:\t"); Serial.println(clear);
   Serial.print("\tR:\t"); Serial.println(red);
   Serial.print("\tG:\t"); Serial.println(green);
   Serial.print("\tB:\t"); Serial.println(blue);
+
+  if(green > red && blue > red){
+    Serial.println("Bleu");
+    couleur = 'b';
+  }
+  else if(red > blue && green > blue){
+    Serial.println("Jaune");
+    couleur = 'j';
+  }
+  else if(red > green && blue > green){
+    Serial.println("Rose");
+    couleur = 'r';
+  }
   
   //afficher_led(couleur);
+  return couleur;
 }
 
 void afficher_led(char couleur)
@@ -156,7 +180,7 @@ void afficher_led(char couleur)
 //----------------------Fonction Servomoteur:-----------------------------
 void bouger_bras(int degree)
 {
-
+  //delay(1500);
 }
 
 //--------------------Fonctions Défi du parcours:-------------------------
@@ -201,7 +225,7 @@ void correction_moteurs(uint32_t pulse_gauche, uint32_t pulse_droit)
   }
 }
 
-void ligne_droite(int distance)
+void ligne_droite(int distance, float vitesseMax, float vitesseMin)
 {
   reset_ENCODERS();
   
@@ -214,23 +238,21 @@ void ligne_droite(int distance)
     pulse_droit = ENCODER_Read(RIGHT);
     pulse_gauche = ENCODER_Read(LEFT);
     
-    if(pulse_droit <= pulse_attendu * 0.5 )// || pulse_gauche <= pulse_attendu * 0.8
+    if(pulse_droit <= pulse_attendu * 0.75 )// || pulse_gauche <= pulse_attendu * 0.8
     {
-      if(speed <= SPEED_LIGNE)
+      if(speed <= vitesseMax)
       {
         speed += 0.005;//2 secondes: 0 => 0.4 ou 2 secondes: 0 => 0.5 pour 0.00625
       }
-      else 
+    }
+
+    else if(pulse_droit >= pulse_attendu * 0.75 && pulse_droit <= pulse_attendu * 0.9)
+    {
+      if(speed >= vitesseMin)
       {
-        speed = SPEED_LIGNE;
+        speed -= 0.005;//1 seconde: 0.5 => 0.3 (-0.2)
       }
     }
-
-    else
-    {
-      speed -= 0.005;//1 seconde: 0.5 => 0.3 (-0.2)
-    }
-
     setSameSpeed_MOTORS(speed);
 
     correction_moteurs(pulse_gauche, pulse_droit);
@@ -264,6 +286,7 @@ void tourne180()
       MOTOR_SetSpeed(LEFT, 0);
     
   }
+}
   
 void tourne(uint8_t idMoteur, float angle)
 {
@@ -278,17 +301,9 @@ void tourne(uint8_t idMoteur, float angle)
 
   if(idMoteur == 0){
     autreMoteur = 1;
-    Serial.print("tourne à gauche de ");
-    Serial.println(angle);
-    Serial.print("Moteur: ");
-    Serial.println(autreMoteur);
   }
   else {
     autreMoteur = 0;
-    Serial.print("tourne à droite de ");
-    Serial.println(angle);
-    Serial.print("Moteur: ");
-    Serial.println(autreMoteur);
   }
 
   while (pulse <= pulse_distance)
@@ -296,7 +311,5 @@ void tourne(uint8_t idMoteur, float angle)
     pulse = ENCODER_Read(autreMoteur);
   }
   
-  MOTOR_SetSpeed(idMoteur, SPEED_ANGLE);
+  MOTOR_SetSpeed(idMoteur, speed);
 }
-  
-  
