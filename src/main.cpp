@@ -2,20 +2,20 @@
 #include <LibRobus.h>
 #include <Adafruit_TCS34725.h>
 
-
-
-//Constants:
+//Constantes Défi du parcours:
 const float MAGIC_NUMBER = 0.00035;
 const int MAGIC_DELAY_LD = 25;
 const uint32_t PPT = 3200;
 const float RAYON = 18.9;
 const float SPEED_ANGLE = 0.25;
 const float SPEED_LIGNE = 0.5;
-//Ligne verte: 2.5 cm
+//Constantes Épreuve du combattant:
+const int ABAISSER = 0;
+const int MONTER = 150;
+
 float speed = 0;
 
 //map de l'arduino
-
 //PWM
 const int PIN_B = 8;
 const int PIN_R = 3;
@@ -38,24 +38,68 @@ void correction_moteurs(uint32_t, uint32_t);
 
 void ligne_droite(int);
 
+void tourne180();
+
+void tourne(uint8_t idMoteur, float angle);
+
 void afficher_led(char);
 
 void detection_couleur();
+
+void bouger_bras(int degree);
 
 void setup() 
 {
   BoardInit();
   
+  //Déroulement du parcours:
+  ligne_droite(20);
+  tourne(RIGHT, 90);
+  ligne_droite(25);
+  tourne(LEFT, 90);
+  ligne_droite(100);
+  char couleur = detection_couleur();
+  ligne_droite(150);
+  bouger_bras(ABAISSER);
+  
+  if(couleur == 'r'){
+    ligne_droite(250);
+    tourne(RIGHT, 90);
+    ligne_droite(25);
+    delay(1000);
+    bouger_bras(MONTER);
+  }
+  else if(couleur == 'y'){
+    tourne(RIGHT, 90);
+    ligne_droite(40);
+    tourne(LEFT, 90);
+    ligne_droite(60);
+    delay(1000);
+    bouger_bras(MONTER);
+  }
+  else{
+    tourne(LEFT, 90);
+    ligne_droite(40);
+    tourne(RIGHT, 90);
+    ligne_droite(150);
+    delay(1000);
+    bouger_bras(MONTER);
+  }
+  
+  /*
   if (tcs.begin()) {
         Serial.println("Found sensor");
   } else {
         Serial.println("No TCS34725 found ... check your connections");
   }
+  */
 }
 
 void loop() {
   detection_couleur();
 }
+
+//-----------------------Fonctions Capteurs:----------------------------
 
 void detection_couleur(){
   uint16_t clear, red, green, blue;
@@ -65,6 +109,8 @@ void detection_couleur(){
   Serial.print("\tR:\t"); Serial.println(red);
   Serial.print("\tG:\t"); Serial.println(green);
   Serial.print("\tB:\t"); Serial.println(blue);
+  
+  //afficher_led(couleur);
 }
 
 void afficher_led(char couleur)
@@ -106,6 +152,14 @@ void afficher_led(char couleur)
   }
 
 }
+
+//----------------------Fonction Servomoteur:-----------------------------
+void bouger_bras(int degree)
+{
+
+}
+
+//--------------------Fonctions Défi du parcours:-------------------------
 
 void reset_ENCODERS()
 {
@@ -183,3 +237,66 @@ void ligne_droite(int distance)
     delay (MAGIC_DELAY_LD);//40 fois / seconde
   }
 }
+
+void tourne180()
+{
+  delay(200);
+  reset_ENCODERS();
+  setSameSpeed_MOTORS(0);
+  
+  float angle = 93;
+
+  uint32_t pulse_distance = distance_pulse(distance_angle(angle));
+  uint32_t pulse_droit = 0;
+  int32_t pulse_gauche = 0;
+  
+  MOTOR_SetSpeed(RIGHT, SPEED_ANGLE);
+  MOTOR_SetSpeed(LEFT, -SPEED_ANGLE);
+  
+  while (pulse_droit <= pulse_distance)
+  {
+    pulse_droit = ENCODER_Read(RIGHT);
+    pulse_gauche = ENCODER_Read(LEFT);
+    
+    if (pulse_droit > pulse_distance)
+      MOTOR_SetSpeed(RIGHT, 0);
+    if (pulse_gauche < - (int) pulse_distance)
+      MOTOR_SetSpeed(LEFT, 0);
+    
+  }
+  
+void tourne(uint8_t idMoteur, float angle)
+{
+  reset_ENCODERS();
+  
+  uint32_t pulse_distance = distance_pulse(distance_angle(angle));
+  uint32_t pulse = 0;
+  
+  MOTOR_SetSpeed(idMoteur, 0);
+
+  uint8_t autreMoteur;
+
+  if(idMoteur == 0){
+    autreMoteur = 1;
+    Serial.print("tourne à gauche de ");
+    Serial.println(angle);
+    Serial.print("Moteur: ");
+    Serial.println(autreMoteur);
+  }
+  else {
+    autreMoteur = 0;
+    Serial.print("tourne à droite de ");
+    Serial.println(angle);
+    Serial.print("Moteur: ");
+    Serial.println(autreMoteur);
+  }
+
+  while (pulse <= pulse_distance)
+  {
+    pulse = ENCODER_Read(autreMoteur);
+  }
+  
+  MOTOR_SetSpeed(idMoteur, SPEED_ANGLE);
+}
+  
+  
