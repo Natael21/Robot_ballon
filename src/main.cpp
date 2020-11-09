@@ -13,6 +13,8 @@ const float SPEED_ANGLE = 0.25;
 const int ABAISSER = 0;
 const int MONTER = 150;
 const float SPEED_BALLON = 0.2;
+const int SIFFLET_MIN = 555;
+const int SIFFLET_MAX = 625;
 
 float speed = 0;
 
@@ -21,6 +23,9 @@ float speed = 0;
 const int PIN_B = 8;
 const int PIN_R = 3;
 const int PIN_J = 2;
+
+//ANALOG IN
+const int PIN_SIFFLET = 14;
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
@@ -48,6 +53,8 @@ void afficher_led(char);
 char detection_couleur();
 
 void bouger_bras(int degree);
+
+int detection_sifflet();
 
 void setup() 
 {
@@ -110,6 +117,21 @@ void loop() {
 
 //-----------------------Fonctions Capteurs:----------------------------
 
+int detection_sifflet()
+{
+  int voltage;
+  voltage = analogRead(int PIN_SIFFLET);
+  if (voltage >= SIFFLET_MIN && voltage <= SIFFLET_MIN)
+  {
+    afficher_led('b');
+    return 1;
+  }
+  else 
+  {
+    return 0;
+  }
+}
+
 char detection_couleur(){
   char couleur;
   uint16_t clear, red, green, blue;
@@ -150,21 +172,21 @@ void afficher_led(char couleur)
   if (couleur == 'r')
   {
     digitalWrite(PIN_R, HIGH); 
-    delay(5000);
+    delay(1000);
     digitalWrite(PIN_R, 0);
   }
  
   else if (couleur == 'j')
   {
     digitalWrite(PIN_J, HIGH);
-    delay(5000);
+    delay(1000);
     digitalWrite(PIN_J, 0);
   }
     
   else if (couleur == 'b')
   {
     digitalWrite(PIN_B, HIGH);
-    delay(5000);
+    delay(1000);
     digitalWrite(PIN_B, 0);
   }
    
