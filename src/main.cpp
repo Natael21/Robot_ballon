@@ -56,14 +56,16 @@ void bouger_bras(int degree);
 
 int detection_sifflet();
 
+void suiveur_ligne();
+
 void setup() 
 {
   BoardInit();
   
   //Déroulement du parcours:
   
-  ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
-  tourne(RIGHT, 93);
+  /*ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
+  tourne(RIGHT, 92);
   ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
   tourne(LEFT, 92);
   ligne_droite(50, SPEED_BALLON, 0.05);
@@ -75,34 +77,34 @@ void setup()
   bouger_bras(ABAISSER);
   Serial.print("Détection: ");Serial.println(couleur);
   if(couleur == 'r'){
-    ligne_droite(200, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 90);
-    ligne_droite(15, SPEED_BALLON, 0);
+    ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 92);
+    ligne_droite(5, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
     
   }
   else if(couleur == 'j'){
     Serial.println(speed);
-    tourne(RIGHT, 90);
-    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
-    tourne(LEFT, 90);
+    tourne(RIGHT, 92);
+    ligne_droite(27, SPEED_BALLON, SPEED_BALLON);
+    tourne(LEFT, 92);
     ligne_droite(60, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
   else{
-    tourne(LEFT, 90);
-    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 90);
-    ligne_droite(150, SPEED_BALLON, 0);
+    tourne(LEFT, 92);
+    ligne_droite(30, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 92);
+    ligne_droite(165, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
   speed = 0;
   setSameSpeed_MOTORS(speed);
   
-  /*
+  
   if (tcs.begin()) {
         Serial.println("Found sensor");
   } else {
@@ -112,12 +114,28 @@ void setup()
 }
 
 void loop() {
-  detection_couleur();
+  suiveur_ligne();
+  //detection_couleur();
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
+void suiveur_ligne()
+{
+  pinMode(8, OUTPUT);
+  digitalWrite(8, 1);
+  int pin3 = analogRead(A9);
+  int pin2 = analogRead(A10);
+  int pin1 = analogRead(A11);
+  Serial.print(pin1);
+  Serial.print("\t");
+  Serial.print(pin2);
+  Serial.print("\t");
+  Serial.print(pin3);
+  Serial.print("\n");
+  delay(1000);
+}
 
-int detection_sifflet()
+/*int detection_sifflet()
 {
   int voltage;
   voltage = analogRead(int PIN_SIFFLET);
@@ -130,7 +148,7 @@ int detection_sifflet()
   {
     return 0;
   }
-}
+}*/
 
 char detection_couleur(){
   char couleur;
