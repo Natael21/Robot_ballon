@@ -13,6 +13,8 @@ const float SPEED_ANGLE = 0.25;
 const int ABAISSER = 160;
 const int MONTER = 125;
 const float SPEED_BALLON = 0.2;
+const int SIFFLET_MIN = 555;
+const int SIFFLET_MAX = 625;
 
 float speed = 0;
 
