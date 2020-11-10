@@ -10,8 +10,8 @@ const float RAYON = 18.9;
 const float SPEED_ANGLE = 0.25;
 
 //Constantes Épreuve du combattant:
-const int ABAISSER = 0;
-const int MONTER = 150;
+const int ABAISSER = 160;
+const int MONTER = 125;
 const float SPEED_BALLON = 0.2;
 
 float speed = 0;
@@ -21,6 +21,11 @@ float speed = 0;
 const int PIN_B = 8;
 const int PIN_R = 3;
 const int PIN_J = 2;
+
+//ANALOG IN
+const int PIN_SIFFLET = 13;
+const int SIFFLET_MIN = 620;
+const int SIFFLET_MAX = 710;
 
 //float SONAR_GetRange(uint8_t 0); un seul sonnar, dans port 1
 
@@ -49,14 +54,22 @@ char detection_couleur();
 
 void bouger_bras(int degree);
 
+int detection_sifflet();
+
+void suiveur_ligne();
+
 void setup() 
 {
   BoardInit();
   
+  SERVO_Enable(1);
+  bouger_bras(MONTER);
+
   //Déroulement du parcours:
-  
+  while(detection_sifflet() != 1){}
+
   ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
-  tourne(RIGHT, 93);
+  tourne(RIGHT, 92);
   ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
   tourne(LEFT, 92);
   ligne_droite(50, SPEED_BALLON, 0.05);
@@ -66,49 +79,80 @@ void setup()
   }
   ligne_droite(120, SPEED_BALLON, 0.5);
   bouger_bras(ABAISSER);
-  Serial.print("Détection: ");Serial.println(couleur);
+  
   if(couleur == 'r'){
-    ligne_droite(200, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 90);
-    ligne_droite(15, SPEED_BALLON, 0);
+    ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 92);
+    ligne_droite(5, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
     
   }
   else if(couleur == 'j'){
-    Serial.println(speed);
-    tourne(RIGHT, 90);
-    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
-    tourne(LEFT, 90);
+    
+    tourne(RIGHT, 92);
+    ligne_droite(27, SPEED_BALLON, SPEED_BALLON);
+    tourne(LEFT, 92);
     ligne_droite(60, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
   else{
-    tourne(LEFT, 90);
-    ligne_droite(40, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 90);
-    ligne_droite(150, SPEED_BALLON, 0);
+    tourne(LEFT, 92);
+    ligne_droite(30, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 92);
+    ligne_droite(165, SPEED_BALLON, 0);
     delay(1000);
     bouger_bras(MONTER);
   }
   speed = 0;
   setSameSpeed_MOTORS(speed);
   
-  /*
+  
   if (tcs.begin()) {
         Serial.println("Found sensor");
   } else {
         Serial.println("No TCS34725 found ... check your connections");
   }
-  */
+  
 }
 
 void loop() {
-  detection_couleur();
+  
+  //detection_couleur();
 }
 
 //-----------------------Fonctions Capteurs:----------------------------
+void suiveur_ligne()
+{
+  pinMode(8, OUTPUT);
+  digitalWrite(8, 1);
+  int pin3 = analogRead(A9);
+  int pin2 = analogRead(A10);
+  int pin1 = analogRead(A11);
+  Serial.print(pin1);
+  Serial.print("\t");
+  Serial.print(pin2);
+  Serial.print("\t");
+  Serial.print(pin3);
+  Serial.print("\n");
+  delay(1000);
+}
+
+/*int detection_sifflet()
+{
+  int voltage;
+  voltage = analogRead(int PIN_SIFFLET);
+  if (voltage >= SIFFLET_MIN && voltage <= SIFFLET_MIN)
+  {
+    afficher_led('b');
+    return 1;
+  }
+  else 
+  {
+    return 0;
+  }
+}*/
 
 char detection_couleur(){
   char couleur;
@@ -137,6 +181,22 @@ char detection_couleur(){
   return couleur;
 }
 
+int detection_sifflet()
+{
+  int voltage;
+  voltage = analogRead(PIN_SIFFLET);
+  Serial.print(voltage);
+  Serial.print("\n");
+  if (voltage >= SIFFLET_MIN)
+  {
+    return 1;
+  }
+  else 
+  {
+    return 0;
+  }
+}
+
 void afficher_led(char couleur)
 {
   //initialisation des modes
@@ -150,22 +210,22 @@ void afficher_led(char couleur)
   if (couleur == 'r')
   {
     digitalWrite(PIN_R, HIGH); 
-    delay(5000);
-    digitalWrite(PIN_R, 0);
+    delay(1000);
+    /*digitalWrite(PIN_R, 0);*/
   }
  
   else if (couleur == 'j')
   {
     digitalWrite(PIN_J, HIGH);
-    delay(5000);
-    digitalWrite(PIN_J, 0);
+    delay(1000);
+    /*digitalWrite(PIN_J, 0);*/
   }
     
   else if (couleur == 'b')
   {
     digitalWrite(PIN_B, HIGH);
-    delay(5000);
-    digitalWrite(PIN_B, 0);
+    delay(1000);
+    /*digitalWrite(PIN_B, 0);*/
   }
    
   else 
@@ -177,10 +237,15 @@ void afficher_led(char couleur)
 
 }
 
+
 //----------------------Fonction Servomoteur:-----------------------------
 void bouger_bras(int degree)
 {
-  //delay(1500);
+  for(int i = 180; i <= degree; i-=10){
+    delay(50);
+    SERVO_SetAngle(1, i);
+  }
+  
 }
 
 //--------------------Fonctions Défi du parcours:-------------------------
