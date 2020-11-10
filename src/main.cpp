@@ -13,16 +13,16 @@ const float SPEED_ANGLE = 0.25;
 const int ABAISSER = 160;
 const int MONTER = 125;
 const float SPEED_BALLON = 0.2;
-const int SIFFLET_MIN = 555;
-const int SIFFLET_MAX = 625;
+//const int SIFFLET_MIN = 555;
+//const int SIFFLET_MAX = 625;
 
 float speed = 0;
 
 //map de l'arduino
 //PWM
-const int PIN_B = 8;
-const int PIN_R = 3;
-const int PIN_J = 2;
+const int PIN_B = 12;
+const int PIN_R = 10;
+const int PIN_J = 11;
 
 //ANALOG IN
 const int PIN_SIFFLET = 13;
@@ -78,11 +78,13 @@ void setup()
   char couleur;
   for(int i = 0; i < 4; i++){
     couleur = detection_couleur();
+    afficher_led(couleur);
   }
   ligne_droite(120, SPEED_BALLON, 0.5);
   bouger_bras(ABAISSER);
   
   if(couleur == 'r'){
+    
     ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 92);
     ligne_droite(5, SPEED_BALLON, 0);
@@ -100,6 +102,7 @@ void setup()
     bouger_bras(MONTER);
   }
   else{
+    
     tourne(LEFT, 92);
     ligne_droite(30, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 92);
