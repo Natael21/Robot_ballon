@@ -13,16 +13,16 @@ const float SPEED_ANGLE = 0.25;
 const int ABAISSER = 160;
 const int MONTER = 125;
 const float SPEED_BALLON = 0.2;
-const int SIFFLET_MIN = 555;
-const int SIFFLET_MAX = 625;
+//const int SIFFLET_MIN = 555;
+//const int SIFFLET_MAX = 625;
 
 float speed = 0;
 
 //map de l'arduino
 //PWM
-const int PIN_B = 8;
-const int PIN_R = 3;
-const int PIN_J = 2;
+const int PIN_B = 12;
+const int PIN_R = 10;
+const int PIN_J = 11;
 
 //ANALOG IN
 const int PIN_SIFFLET = 13;
@@ -54,7 +54,7 @@ void afficher_led(char);
 
 char detection_couleur();
 
-void bouger_bras(int degree);
+void bouger_servomoteur(int degree);
 
 int detection_sifflet();
 
@@ -65,68 +65,56 @@ void setup()
   BoardInit();
   
   SERVO_Enable(1);
-  bouger_bras(MONTER);
+  bouger_servomoteur(MONTER);
 
   //Déroulement du parcours:
-  while(detection_sifflet() != 1){}
+  //while(detection_sifflet() != 1){}
+  while(!ROBUS_IsBumper(3)){}
 
   ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
   tourne(RIGHT, 92);
   ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
   tourne(LEFT, 92);
-  ligne_droite(50, SPEED_BALLON, 0.05);
+  ligne_droite(30, SPEED_BALLON, 0.15);
   char couleur;
-  for(int i = 0; i < 4; i++){
+  for(int i = 0; i < 3; i++){
     couleur = detection_couleur();
+    afficher_led(couleur);
   }
-  ligne_droite(120, SPEED_BALLON, 0.5);
-  bouger_bras(ABAISSER);
+  ligne_droite(105, SPEED_BALLON, 0.15);
+  bouger_servomoteur(ABAISSER);
   
   if(couleur == 'r'){
+    
     ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 92);
-    ligne_droite(5, SPEED_BALLON, 0);
-    delay(1000);
-    bouger_bras(MONTER);
-    
+    ligne_droite(5, SPEED_BALLON, 0.15);
   }
   else if(couleur == 'j'){
     
     tourne(RIGHT, 92);
-    ligne_droite(27, SPEED_BALLON, SPEED_BALLON);
+    ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
     tourne(LEFT, 92);
-    ligne_droite(60, SPEED_BALLON, 0);
-    delay(1000);
-    bouger_bras(MONTER);
+    ligne_droite(53, SPEED_BALLON, 0.15);
   }
   else{
+    
     tourne(LEFT, 92);
-    ligne_droite(30, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 92);
-    ligne_droite(165, SPEED_BALLON, 0);
-    delay(1000);
-    bouger_bras(MONTER);
+    ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 91);
+    ligne_droite(140, SPEED_BALLON, 0.15);
   }
   speed = 0;
   setSameSpeed_MOTORS(speed);
-  
-  
-  if (tcs.begin()) {
-        Serial.println("Found sensor");
-  } else {
-        Serial.println("No TCS34725 found ... check your connections");
-  }
+  delay(1000);
+  bouger_servomoteur(MONTER);
   
 }
 
-void loop() {
-  
-  //detection_couleur();
-}
+void loop() {}
 
 //-----------------------Fonctions Capteurs:----------------------------
-void suiveur_ligne()
-{
+void suiveur_ligne(){
   pinMode(8, OUTPUT);
   digitalWrite(8, 1);
   int pin3 = analogRead(A9);
@@ -141,26 +129,11 @@ void suiveur_ligne()
   delay(1000);
 }
 
-/*int detection_sifflet()
-{
-  int voltage;
-  voltage = analogRead(int PIN_SIFFLET);
-  if (voltage >= SIFFLET_MIN && voltage <= SIFFLET_MIN)
-  {
-    afficher_led('b');
-    return 1;
-  }
-  else 
-  {
-    return 0;
-  }
-}*/
-
 char detection_couleur(){
   char couleur;
   uint16_t clear, red, green, blue;
   tcs.getRawData(&red, &green, &blue, &clear);
-  delay(500);
+  delay(250);
   Serial.print("C:\t"); Serial.println(clear);
   Serial.print("\tR:\t"); Serial.println(red);
   Serial.print("\tG:\t"); Serial.println(green);
@@ -183,8 +156,7 @@ char detection_couleur(){
   return couleur;
 }
 
-int detection_sifflet()
-{
+int detection_sifflet(){
   int voltage;
   voltage = analogRead(PIN_SIFFLET);
   Serial.print(voltage);
@@ -199,8 +171,7 @@ int detection_sifflet()
   }
 }
 
-void afficher_led(char couleur)
-{
+void afficher_led(char couleur){
   //initialisation des modes
   pinMode(PIN_J, OUTPUT);
   pinMode(PIN_R, OUTPUT);
@@ -236,48 +207,46 @@ void afficher_led(char couleur)
     digitalWrite(PIN_R, HIGH);
     digitalWrite(PIN_B, HIGH);
   }
-
 }
 
-
-//----------------------Fonction Servomoteur:-----------------------------
-void bouger_bras(int degree)
-{
-  for(int i = 180; i <= degree; i-=10){
-    delay(50);
-    SERVO_SetAngle(1, i);
+//----------------------Fonctions Motrices:-----------------------------
+void bouger_servomoteur(int degree){
+  if(degree == ABAISSER){
+    for(int i = MONTER; i <= degree; i+=5){
+      delay(50);
+      SERVO_SetAngle(1, i);
+    }
+  } 
+  else {
+    for(int i = ABAISSER; i >= degree; i-=5){
+      delay(50);
+      SERVO_SetAngle(1, i);
+    }
   }
   
 }
 
-//--------------------Fonctions Défi du parcours:-------------------------
-
-void reset_ENCODERS()
-{
+void reset_ENCODERS(){
   ENCODER_Reset(RIGHT);
   ENCODER_Reset(LEFT);
 }
 
-void setSameSpeed_MOTORS(float speed)
-{
+void setSameSpeed_MOTORS(float speed){
   MOTOR_SetSpeed(RIGHT, speed);
   MOTOR_SetSpeed(LEFT, speed);
 }
 
-uint32_t distance_pulse(float distance)
-{
+uint32_t distance_pulse(float distance){
   uint32_t pulse_attendu = distance / 23.94 * PPT;
   return pulse_attendu;
 }
 
-float distance_angle(float angle)
-{
+float distance_angle(float angle){
   float distance = (2 * PI * angle * RAYON) / 360;
   return distance;
 }
 
-void correction_moteurs(uint32_t pulse_gauche, uint32_t pulse_droit)
-{
+void correction_moteurs(uint32_t pulse_gauche, uint32_t pulse_droit){
   float erreur;
   
   if(pulse_droit > pulse_gauche) {
@@ -292,8 +261,7 @@ void correction_moteurs(uint32_t pulse_gauche, uint32_t pulse_droit)
   }
 }
 
-void ligne_droite(int distance, float vitesseMax, float vitesseMin)
-{
+void ligne_droite(int distance, float vitesseMax, float vitesseMin){
   reset_ENCODERS();
   
   uint32_t pulse_droit = 0;
@@ -305,7 +273,7 @@ void ligne_droite(int distance, float vitesseMax, float vitesseMin)
     pulse_droit = ENCODER_Read(RIGHT);
     pulse_gauche = ENCODER_Read(LEFT);
     
-    if(pulse_droit <= pulse_attendu * 0.75 )// || pulse_gauche <= pulse_attendu * 0.8
+    if(pulse_droit <= pulse_attendu * 0.6 )// || pulse_gauche <= pulse_attendu * 0.8
     {
       if(speed <= vitesseMax)
       {
@@ -313,7 +281,7 @@ void ligne_droite(int distance, float vitesseMax, float vitesseMin)
       }
     }
 
-    else if(pulse_droit >= pulse_attendu * 0.75 && pulse_droit <= pulse_attendu * 0.9)
+    else if(pulse_droit >= pulse_attendu * 0.6 && pulse_droit <= pulse_attendu * 0.9)
     {
       if(speed >= vitesseMin)
       {
@@ -327,8 +295,7 @@ void ligne_droite(int distance, float vitesseMax, float vitesseMin)
   }
 }
 
-void tourne180()
-{
+void tourne180(){
   delay(200);
   reset_ENCODERS();
   setSameSpeed_MOTORS(0);
@@ -355,8 +322,7 @@ void tourne180()
   }
 }
   
-void tourne(uint8_t idMoteur, float angle)
-{
+void tourne(uint8_t idMoteur, float angle){
   reset_ENCODERS();
   
   uint32_t pulse_distance = distance_pulse(distance_angle(angle));
