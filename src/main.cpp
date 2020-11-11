@@ -19,10 +19,10 @@ const float SPEED_BALLON = 0.2;
 float speed = 0;
 
 //map de l'arduino
-//PWM
-const int PIN_B = 12;
-const int PIN_R = 10;
-const int PIN_J = 11;
+//PWM ou autres 0 ou 5 V
+const int PIN_B = 40; 
+const int PIN_R = 42;
+const int PIN_J = 41;
 
 //ANALOG IN
 const int PIN_SIFFLET = 13;
@@ -60,7 +60,7 @@ int detection_sifflet();
 
 void suiveur_ligne();
 
-void setup() 
+void setup() // on se doit de bien centrer le robot
 {
   BoardInit();
   
@@ -88,7 +88,7 @@ void setup()
     
     ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 92);
-    ligne_droite(5, SPEED_BALLON, 0.15);
+    ligne_droite(8, SPEED_BALLON, 0.15);
   }
   else if(couleur == 'j'){
     
