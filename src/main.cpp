@@ -66,13 +66,13 @@ void setup() // on se doit de bien centrer le robot
   BoardInit();
   
   //Déroulement du parcours:
-  //while(detection_sifflet() != 1){}
-  while(!ROBUS_IsBumper(3)){}
+  while(detection_sifflet() != 1){}
+  //while(!ROBUS_IsBumper(3)){}
 
   SERVO_Enable(1);
   bouger_servomoteur(MONTER);
 
-  //delay(15000);
+  delay(15000);
 
   ligne_droite(35, SPEED_BALLON, SPEED_BALLON);
   tourne(RIGHT, 92);
