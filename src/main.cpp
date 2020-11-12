@@ -91,18 +91,16 @@ void setup() // on se doit de bien centrer le robot
     ligne_droite(8, SPEED_BALLON, 0.15);
   }
   else if(couleur == 'j'){
-    
+  
+    ligne_droite(53, SPEED_BALLON, 0.15);
     tourne(RIGHT, 92);
     ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
-    tourne(LEFT, 92);
-    ligne_droite(53, SPEED_BALLON, 0.15);
   }
   else{
     
+    ligne_droite(140, SPEED_BALLON, 0.15);
     tourne(LEFT, 92);
     ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
-    tourne(RIGHT, 91);
-    ligne_droite(140, SPEED_BALLON, 0.15);
   }
   speed = 0;
   setSameSpeed_MOTORS(speed);
