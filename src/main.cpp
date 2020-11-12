@@ -3,7 +3,8 @@
 #include <Adafruit_TCS34725.h>
 
 //Constantes Défi du parcours:
-const float MAGIC_NUMBER = 0.00035;
+//const float MAGIC_NUMBER = 0.00035;
+const float MAGIC_NUMBER = 0.0004;
 const int MAGIC_DELAY_LD = 25;
 const uint32_t PPT = 3200;
 const float RAYON = 18.9;
@@ -64,43 +65,48 @@ void setup() // on se doit de bien centrer le robot
 {
   BoardInit();
   
-  SERVO_Enable(1);
-  bouger_servomoteur(MONTER);
-
   //Déroulement du parcours:
   //while(detection_sifflet() != 1){}
   while(!ROBUS_IsBumper(3)){}
 
-  ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
+  SERVO_Enable(1);
+  bouger_servomoteur(MONTER);
+
+  //delay(15000);
+
+  ligne_droite(35, SPEED_BALLON, SPEED_BALLON);
   tourne(RIGHT, 92);
-  ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
+  ligne_droite(17, SPEED_BALLON, SPEED_BALLON);
   tourne(LEFT, 92);
   ligne_droite(30, SPEED_BALLON, 0.15);
   char couleur;
-  for(int i = 0; i < 3; i++){
+  for(int i = 0; i < 2; i++){
     couleur = detection_couleur();
     afficher_led(couleur);
   }
-  ligne_droite(105, SPEED_BALLON, 0.15);
+  ligne_droite(115, SPEED_BALLON, 0.15);
   bouger_servomoteur(ABAISSER);
   
   if(couleur == 'r'){
     
     ligne_droite(225, SPEED_BALLON, SPEED_BALLON);
     tourne(RIGHT, 92);
-    ligne_droite(8, SPEED_BALLON, 0.15);
+    ligne_droite(10, SPEED_BALLON, 0.15);
+    tourne(LEFT, 92);
   }
   else if(couleur == 'j'){
   
-    ligne_droite(53, SPEED_BALLON, 0.15);
+    ligne_droite(63, SPEED_BALLON, 0.15);
     tourne(RIGHT, 92);
     ligne_droite(7, SPEED_BALLON, SPEED_BALLON);
+    tourne(LEFT, 92);
   }
   else{
     
     ligne_droite(140, SPEED_BALLON, 0.15);
     tourne(LEFT, 92);
-    ligne_droite(20, SPEED_BALLON, SPEED_BALLON);
+    ligne_droite(15, SPEED_BALLON, SPEED_BALLON);
+    tourne(RIGHT, 92);
   }
   speed = 0;
   setSameSpeed_MOTORS(speed);
