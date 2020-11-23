@@ -11,8 +11,8 @@ const float RAYON = 18.9;
 const float SPEED_ANGLE = 0.25;
 
 //Constantes Épreuve du combattant:
-const int ABAISSER = 160;
-const int MONTER = 125;
+const int ABAISSER = 175;
+const int MONTER = 100;
 const float SPEED_BALLON = 0.2;
 //const int SIFFLET_MIN = 555;
 //const int SIFFLET_MAX = 625;
@@ -64,9 +64,18 @@ void suiveur_ligne();
 void setup() // on se doit de bien centrer le robot
 {
   BoardInit();
+
+  SERVO_Enable(0);
+  bouger_servomoteur(ABAISSER);
+  //while(!ROBUS_IsBumper(3)){}
+  //Serial.print("bumber arriere\n");
+  //SERVO_Enable(0);
+  bouger_servomoteur(MONTER);
+  bouger_servomoteur(ABAISSER);
+  SERVO_Disable(0);
   
   //Déroulement du parcours:
-  while(detection_sifflet() != 1){}
+  /*while(detection_sifflet() != 1){}
   //while(!ROBUS_IsBumper(3)){}
 
   SERVO_Enable(1);
@@ -112,8 +121,11 @@ void setup() // on se doit de bien centrer le robot
   setSameSpeed_MOTORS(speed);
   delay(1000);
   bouger_servomoteur(MONTER);
-  
+
+*/  
+
 }
+
 
 void loop() {}
 
@@ -218,13 +230,13 @@ void bouger_servomoteur(int degree){
   if(degree == ABAISSER){
     for(int i = MONTER; i <= degree; i+=5){
       delay(50);
-      SERVO_SetAngle(1, i);
+      SERVO_SetAngle(0, i);
     }
   } 
   else {
     for(int i = ABAISSER; i >= degree; i-=5){
       delay(50);
-      SERVO_SetAngle(1, i);
+      SERVO_SetAngle(0, i);
     }
   }
   
